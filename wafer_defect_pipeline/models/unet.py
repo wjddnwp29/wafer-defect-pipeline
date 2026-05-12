@@ -1,8 +1,3 @@
-"""Class-conditional UNet used as the noise predictor for DDPM and the backbone for CM.
-
-Ported from HW08_20231049.ipynb (MyBlock, sinusoidal_embedding, MyUNet).
-"""
-
 from __future__ import annotations
 
 import torch
@@ -48,7 +43,6 @@ class MyBlock(nn.Module):
 
 
 class MyUNet(nn.Module):
-    """Class-conditional UNet for 28x28 wafer maps."""
 
     def __init__(self, n_steps: int = 1000, time_emb_dim: int = 100, num_classes: int = 8):
         super().__init__()

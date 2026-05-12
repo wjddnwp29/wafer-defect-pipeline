@@ -1,8 +1,3 @@
-"""DDPM wrapper around the UNet.
-
-Ported from HW08_20231049.ipynb (MyDDPM).
-"""
-
 from __future__ import annotations
 
 import torch
@@ -10,7 +5,6 @@ import torch.nn as nn
 
 
 class MyDDPM(nn.Module):
-    """DDPM with linear beta schedule and class-conditional UNet backbone."""
 
     def __init__(
         self,

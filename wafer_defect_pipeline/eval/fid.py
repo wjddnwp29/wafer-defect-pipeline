@@ -1,9 +1,3 @@
-"""Frechet Inception Distance using a pretrained Inception v3.
-
-Ported from HW08_20231049.ipynb (InceptionFeatureExtractor, calculate_fid,
-extract_features).
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -17,11 +11,6 @@ INCEPTION_INPUT_SIZE = 299
 
 
 class InceptionFeatureExtractor(nn.Module):
-    """Pretrained Inception v3 with the classification head replaced by Identity.
-
-    Accepts grayscale or RGB inputs in [-1, 1]; expands to 3 channels and
-    upsamples to 299x299 before passing through Inception v3.
-    """
 
     def __init__(self, weights: Inception_V3_Weights | None = Inception_V3_Weights.DEFAULT):
         super().__init__()
@@ -43,7 +32,6 @@ class InceptionFeatureExtractor(nn.Module):
 
 
 def calculate_fid(real_features: np.ndarray, fake_features: np.ndarray) -> float:
-    """Standard Frechet Inception Distance between two feature matrices (N, D)."""
     mu1, sigma1 = real_features.mean(axis=0), np.cov(real_features, rowvar=False)
     mu2, sigma2 = fake_features.mean(axis=0), np.cov(fake_features, rowvar=False)
 
@@ -61,11 +49,6 @@ def extract_features(
     device: torch.device,
     batch_size: int = 50,
 ) -> np.ndarray:
-    """Run images through the feature extractor in batches and return (N, D) array.
-
-    images may be (N, H, W), (N, 1, H, W), or (N, 3, H, W). Pixel range is
-    expected to be [-1, 1].
-    """
     if isinstance(images, np.ndarray):
         images_t = torch.from_numpy(images).float()
     else:

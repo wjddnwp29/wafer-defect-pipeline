@@ -1,8 +1,3 @@
-"""Consistency Model distillation training.
-
-Ported from HW08_20231049.ipynb (consistency_distillation_loss, train_consistency_model).
-"""
-
 from __future__ import annotations
 
 import copy
@@ -29,7 +24,6 @@ def consistency_distillation_loss(
     recon_weight: float = 2.0,
     teacher_weight: float = 1.0,
 ) -> torch.Tensor:
-    """Multi-scale consistency distillation + reconstruction + teacher distillation."""
     batch_size = x0.shape[0]
     n_steps = teacher_ddpm.n_steps
 
@@ -95,10 +89,6 @@ def train_consistency_model(
     ema_decay_min: float = 0.99,
     verbose: bool = True,
 ):
-    """Distill a Consistency Model from a frozen teacher DDPM.
-
-    Returns (student_cm, loss_history). Student is loaded with best checkpoint.
-    """
     student_network = copy.deepcopy(teacher_ddpm.network).to(device)
     student_cm = ConsistencyModel(
         student_network, n_steps=teacher_ddpm.n_steps, device=device

@@ -1,8 +1,3 @@
-"""Plotting helpers for samples and the forward diffusion process.
-
-Ported from HW08_20231049.ipynb (show_images, show_forward).
-"""
-
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
@@ -17,7 +12,6 @@ def show_images(
     class_names=None,
     show: bool = True,
 ) -> plt.Figure:
-    """Plot a batch of images in a near-square grid and return the Figure."""
     if isinstance(images, tuple):
         images, labels = images
 
@@ -61,7 +55,6 @@ def show_images(
 
 
 def show_forward(ddpm, loader, device: torch.device) -> None:
-    """Visualize the forward noising process at four schedule fractions."""
     for batch in loader:
         imgs = batch[0]
         show_images(imgs, "Original images")

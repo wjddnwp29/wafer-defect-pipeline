@@ -1,8 +1,3 @@
-"""WM-811K dataset acquisition and standard preprocessing transform.
-
-Ported from HW08_20231049.ipynb (kagglehub download + transform pipeline).
-"""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,10 +10,6 @@ PICKLE_FILENAME = "LSWMD.pkl"
 
 
 def download_wm811k(cache_dir: str | Path | None = None) -> Path:
-    """Download WM-811K via kagglehub and return the path to LSWMD.pkl.
-
-    cache_dir, if given, overrides kagglehub's default location via KAGGLEHUB_CACHE.
-    """
     import os
 
     import kagglehub
@@ -39,7 +30,6 @@ def download_wm811k(cache_dir: str | Path | None = None) -> Path:
 
 
 def build_transform(img_size: int = DEFAULT_IMG_SIZE) -> transforms.Compose:
-    """Standard preprocessing pipeline: resize -> tensor -> normalize to [-1, 1]."""
     return transforms.Compose(
         [
             transforms.Resize((img_size, img_size)),

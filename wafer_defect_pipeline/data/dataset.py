@@ -1,8 +1,3 @@
-"""Class-conditional WM-811K wafer map dataset.
-
-Ported from HW08_20231049.ipynb (ConditionalWaferDataset).
-"""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,13 +13,6 @@ DEFAULT_IMG_SIZE = 28
 
 
 class ConditionalWaferDataset(Dataset):
-    """Wafer map dataset that yields (image, class_index) pairs.
-
-    Drops the 'none' (normal) class so the dataset contains defect patterns only.
-    Wafer maps are resized with nearest-neighbor interpolation to preserve the
-    original {0, 1, 2} pixel values, then mapped to grayscale and passed through
-    the caller-supplied transform.
-    """
 
     def __init__(
         self,

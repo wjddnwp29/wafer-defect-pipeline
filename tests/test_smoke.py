@@ -1,10 +1,3 @@
-"""Smoke tests that lock in the public surface of the package skeleton.
-
-These pass as soon as imports resolve and types are constructable. As each
-HW08 cell gets ported, replace the `pytest.skip` markers with real behavior
-assertions.
-"""
-
 from __future__ import annotations
 
 

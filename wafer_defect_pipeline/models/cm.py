@@ -1,8 +1,3 @@
-"""Consistency Model and EMA helper.
-
-Ported from HW08_20231049.ipynb (update_ema, ConsistencyModel).
-"""
-
 from __future__ import annotations
 
 import torch
@@ -14,7 +9,6 @@ def update_ema(
     student_model: nn.Module,
     decay: float = 0.99999,
 ) -> None:
-    """In-place EMA update: theta_target = decay * theta_target + (1 - decay) * theta_student."""
     with torch.no_grad():
         for t_param, s_param in zip(
             target_model.parameters(), student_model.parameters(), strict=True
@@ -23,7 +17,6 @@ def update_ema(
 
 
 class ConsistencyModel(nn.Module):
-    """Consistency Model wrapper sharing the UNet backbone with the teacher DDPM."""
 
     def __init__(
         self,

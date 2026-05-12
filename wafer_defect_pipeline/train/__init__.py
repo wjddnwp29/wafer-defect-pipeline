@@ -1,5 +1,3 @@
-"""Training loops for DDPM and Consistency Models."""
-
 from wafer_defect_pipeline.train.trainer import training_loop
 from wafer_defect_pipeline.train.trainer_cm import (
     consistency_distillation_loss,

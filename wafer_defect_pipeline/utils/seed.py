@@ -1,8 +1,3 @@
-"""Deterministic seeding for reproducibility.
-
-Source: HW08_20231049.ipynb code cell #3.
-"""
-
 from __future__ import annotations
 
 import os
@@ -13,10 +8,6 @@ import torch
 
 
 def seed_everything(seed: int = 42) -> None:
-    """Seed Python, NumPy, and PyTorch (CPU + CUDA) for reproducible runs.
-
-    Source: HW08 cell #3.
-    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

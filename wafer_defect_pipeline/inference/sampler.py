@@ -1,9 +1,3 @@
-"""Class-conditional samplers for DDPM, DDIM, and Consistency Models.
-
-Ported from HW08_20231049.ipynb (generate_ddpm_with_nfe, generate_ddim_with_nfe,
-generate_cm_with_nfe). Each function returns (x, classes, nfe, elapsed_seconds).
-"""
-
 from __future__ import annotations
 
 import time
@@ -34,7 +28,6 @@ def generate_ddpm_with_nfe(
     h: int = 28,
     w: int = 28,
 ) -> tuple[torch.Tensor, torch.Tensor, int, float]:
-    """Full-trajectory DDPM ancestral sampling (NFE = n_steps)."""
     if device is None:
         device = ddpm.device
     classes = _resolve_classes(classes, n_samples, device)
@@ -77,7 +70,6 @@ def generate_ddim_with_nfe(
     h: int = 28,
     w: int = 28,
 ) -> tuple[torch.Tensor, torch.Tensor, int, float]:
-    """Deterministic / stochastic DDIM sampling with configurable step count."""
     if device is None:
         device = ddpm.device
     classes = _resolve_classes(classes, n_samples, device)
@@ -137,7 +129,6 @@ def generate_cm_with_nfe(
     h: int = 28,
     w: int = 28,
 ) -> tuple[torch.Tensor, torch.Tensor, int, float]:
-    """Consistency Model sampling (1-step or multi-step refinement)."""
     if device is None:
         device = cm.device
     classes = _resolve_classes(classes, n_samples, device)

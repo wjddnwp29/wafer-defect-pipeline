@@ -1,11 +1,9 @@
-# DDIM sampler configuration. The training model is the same DDPM checkpoint;
-# DDIM only changes the sampling trajectory.
-
-model:
-  name: ddim
-  n_steps: 1000                   # diffusion training steps (matches DDPM)
-  sampling_steps: 50              # DDIM evaluation step count (50 / 100 / 200 in HW08 study)
-  eta: 0.0                        # 0 = deterministic DDIM, 1.0 = stochastic DDPM-equivalent
+name: ddim
+n_steps: 1000
+min_beta: 1.0e-4
+max_beta: 0.02
+sampling_steps: 50
+eta: 0.0
 
 unet:
   time_emb_dim: 100

@@ -1,16 +1,11 @@
-# Generic training configuration. Hydra composes this with a model/* and data/* config.
-
-train:
-  n_epochs: 30
-  optimizer:
-    name: adam
-    lr: 1.0e-3
-  device: auto                    # auto | cpu | cuda
-  display: false
-  store_path: checkpoints/best.pt
+n_epochs: 30
+optimizer:
+  name: adam
+  lr: 1.0e-3
+device: auto
+display: false
+store_path: checkpoints/best.pt
 
 logging:
-  mlflow_uri: file:./mlruns       # will be wired up in Phase 2
+  mlflow_uri: file:./mlruns
   experiment_name: wafer-defect-mlops
-
-seed: 42

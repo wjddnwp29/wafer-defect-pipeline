@@ -1,10 +1,3 @@
-"""DDPM training loop.
-
-Ported from HW08_20231049.ipynb (training_loop). Matplotlib plotting and CSV
-dumping from the notebook are intentionally dropped; callers get loss_history
-back and can persist whatever they need.
-"""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,7 +17,6 @@ def training_loop(
     store_path: str | Path = "ddpm_model.pt",
     verbose: bool = True,
 ) -> list[float]:
-    """Train a DDPM for n_epochs with eps-prediction MSE, saving the best checkpoint."""
     mse = nn.MSELoss()
     n_steps = ddpm.n_steps
     best_loss = float("inf")

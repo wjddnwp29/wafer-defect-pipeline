@@ -1,16 +1,13 @@
-# Consistency Model distillation config. Teacher is a trained DDPM checkpoint.
-
-model:
-  name: cm
-  n_steps: 1000
-  sigma_min: 0.002
-  sigma_max: 80.0
+name: cm
+n_steps: 1000
+sigma_min: 0.002
+sigma_max: 80.0
 
 distillation:
   step_sizes: [1, 10, 50, 100, 200, 500, 700]
   ema_decay: 0.99999
 
-teacher_checkpoint: null          # path to the DDPM .pt to distill from
+teacher_checkpoint: null
 
 unet:
   time_emb_dim: 100
