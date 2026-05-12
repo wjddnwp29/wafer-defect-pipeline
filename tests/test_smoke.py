@@ -98,3 +98,49 @@ def test_cm_forward_smoke():
 
     target = ConsistencyModel(MyUNet(n_steps=n_steps, num_classes=num_classes), n_steps=n_steps)
     update_ema(target, cm, decay=0.5)
+
+
+def test_build_transform_smoke():
+    import numpy as np
+    from PIL import Image
+
+    from wafer_defect_pipeline.data import build_transform
+
+    tf = build_transform(img_size=28)
+    img = Image.fromarray(np.zeros((40, 40), dtype=np.uint8), mode="L")
+    out = tf(img)
+    assert out.shape == (1, 28, 28)
+    assert float(out.min()) >= -1.0 - 1e-6
+    assert float(out.max()) <= 1.0 + 1e-6
+
+
+def test_conditional_wafer_dataset_with_fake_pickle(tmp_path):
+    import numpy as np
+    import pandas as pd
+
+    from wafer_defect_pipeline.data import ConditionalWaferDataset, build_transform
+
+    fake_rows = []
+    for label in ["Center", "Donut", "none"]:
+        for _ in range(3):
+            wmap = np.random.randint(0, 3, size=(32, 36), dtype=np.uint8)
+            fake_rows.append({"waferMap": wmap, "failureType": np.array([[label]])})
+    df = pd.DataFrame(fake_rows)
+    pkl = tmp_path / "LSWMD.pkl"
+    df.to_pickle(pkl)
+
+    ds = ConditionalWaferDataset(pkl, transform=build_transform(28))
+    assert len(ds) == 6  # 'none' dropped
+    img, label = ds[0]
+    assert img.shape == (1, 28, 28)
+    assert label.dtype.is_floating_point is False
+    assert set(ds.idx_to_class.values()) == {"Center", "Donut"}
+
+
+def test_conditional_wafer_dataset_missing_file(tmp_path):
+    import pytest
+
+    from wafer_defect_pipeline.data import ConditionalWaferDataset
+
+    with pytest.raises(FileNotFoundError):
+        ConditionalWaferDataset(tmp_path / "does_not_exist.pkl")
