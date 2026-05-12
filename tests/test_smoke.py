@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 
 def test_package_imports():
     import wafer_defect_pipeline  # noqa: F401
@@ -281,3 +283,54 @@ def test_inception_feature_extractor_no_weights_shape():
     feats = extract_features(imgs, model, device=torch.device("cpu"), batch_size=2)
     assert feats.shape[0] == 2
     assert feats.ndim == 2
+
+
+def test_hydra_config_compose_and_builders():
+    from hydra import compose, initialize_config_dir
+
+    from wafer_defect_pipeline.runtime import build_ddpm, build_device, build_unet
+
+    config_dir = str(
+        (Path(__file__).resolve().parent.parent / "configs").as_posix()
+    )
+
+    with initialize_config_dir(version_base=None, config_dir=config_dir):
+        cfg = compose(
+            config_name="config",
+            overrides=[
+                "model=ddpm",
+                "train.n_epochs=1",
+                "model.n_steps=20",
+                "model.unet.num_classes=4",
+            ],
+        )
+
+    device = build_device("cpu")
+    unet = build_unet(cfg)
+    assert unet.n_steps == 20
+    ddpm = build_ddpm(cfg, device)
+    assert ddpm.n_steps == 20
+    assert ddpm.alpha_bars.shape == (20,)
+
+
+def test_hydra_cm_config_builds_cm():
+    from hydra import compose, initialize_config_dir
+
+    from wafer_defect_pipeline.runtime import build_cm, build_device
+
+    config_dir = str(
+        (Path(__file__).resolve().parent.parent / "configs").as_posix()
+    )
+
+    with initialize_config_dir(version_base=None, config_dir=config_dir):
+        cfg = compose(
+            config_name="config",
+            overrides=[
+                "model=cm",
+                "model.n_steps=20",
+                "model.unet.num_classes=4",
+            ],
+        )
+
+    cm = build_cm(cfg, build_device("cpu"))
+    assert cm.n_steps == 20
