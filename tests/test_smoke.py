@@ -144,3 +144,104 @@ def test_conditional_wafer_dataset_missing_file(tmp_path):
 
     with pytest.raises(FileNotFoundError):
         ConditionalWaferDataset(tmp_path / "does_not_exist.pkl")
+
+
+def _tiny_loader(batch_size: int, n_batches: int, num_classes: int):
+    import torch
+    from torch.utils.data import DataLoader, TensorDataset
+
+    n = batch_size * n_batches
+    x = torch.randn(n, 1, 28, 28)
+    y = torch.randint(0, num_classes, (n,))
+    return DataLoader(TensorDataset(x, y), batch_size=batch_size, shuffle=True)
+
+
+def test_training_loop_smoke(tmp_path):
+    import torch
+
+    from wafer_defect_pipeline.models import MyDDPM, MyUNet
+    from wafer_defect_pipeline.train import training_loop
+
+    device = torch.device("cpu")
+    n_steps, num_classes = 20, 4
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    ddpm = MyDDPM(net, n_steps=n_steps, device=device, image_chw=(1, 28, 28))
+    optim = torch.optim.Adam(ddpm.parameters(), lr=1e-3)
+
+    ckpt = tmp_path / "ddpm.pt"
+    history = training_loop(
+        ddpm,
+        _tiny_loader(batch_size=2, n_batches=2, num_classes=num_classes),
+        n_epochs=2,
+        optim=optim,
+        device=device,
+        store_path=ckpt,
+        verbose=False,
+    )
+    assert len(history) == 2
+    assert all(isinstance(loss, float) for loss in history)
+    assert ckpt.exists()
+
+
+def test_generate_ddpm_with_nfe_shape():
+    import torch
+
+    from wafer_defect_pipeline.inference import generate_ddpm_with_nfe
+    from wafer_defect_pipeline.models import MyDDPM, MyUNet
+
+    device = torch.device("cpu")
+    n_steps, num_classes = 10, 4
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    ddpm = MyDDPM(net, n_steps=n_steps, device=device, image_chw=(1, 28, 28))
+    classes = torch.randint(0, num_classes, (3,))
+
+    x, classes_out, nfe, _ = generate_ddpm_with_nfe(
+        ddpm, n_samples=3, device=device, classes=classes
+    )
+    assert x.shape == (3, 1, 28, 28)
+    assert classes_out.shape == (3,)
+    assert nfe == n_steps
+
+
+def test_generate_ddim_with_nfe_shape():
+    import torch
+
+    from wafer_defect_pipeline.inference import generate_ddim_with_nfe
+    from wafer_defect_pipeline.models import MyDDPM, MyUNet
+
+    device = torch.device("cpu")
+    n_steps, num_classes = 20, 4
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    ddpm = MyDDPM(net, n_steps=n_steps, device=device, image_chw=(1, 28, 28))
+    classes = torch.randint(0, num_classes, (3,))
+
+    x, _, nfe, _ = generate_ddim_with_nfe(
+        ddpm, n_samples=3, device=device, ddim_steps=5, classes=classes
+    )
+    assert x.shape == (3, 1, 28, 28)
+    assert nfe == 5
+
+
+def test_generate_cm_with_nfe_shape():
+    import torch
+
+    from wafer_defect_pipeline.inference import generate_cm_with_nfe
+    from wafer_defect_pipeline.models import ConsistencyModel, MyUNet
+
+    device = torch.device("cpu")
+    n_steps, num_classes = 20, 4
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    cm = ConsistencyModel(net, n_steps=n_steps, device=device)
+    classes = torch.randint(0, num_classes, (3,))
+
+    x, _, nfe, _ = generate_cm_with_nfe(
+        cm, n_samples=3, device=device, num_steps=1, classes=classes
+    )
+    assert x.shape == (3, 1, 28, 28)
+    assert nfe == 1
+
+    x, _, nfe, _ = generate_cm_with_nfe(
+        cm, n_samples=3, device=device, num_steps=4, classes=classes
+    )
+    assert x.shape == (3, 1, 28, 28)
+    assert nfe == 4
