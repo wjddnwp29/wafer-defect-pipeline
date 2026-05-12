@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+.uv-cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Ruff
+.ruff_cache/
+
+# Project artifacts
+data/                          # raw datasets (not tracked, use DVC later)
+checkpoints/                   # model weights
+runs/                          # training runs (mlflow / tensorboard)
+mlruns/
+outputs/                       # hydra/training outputs
+images/real/
+images/fake/
+images/cm/
+*.pt
+*.pth
+*.onnx
+
+# Local secrets
+.env
+secrets/

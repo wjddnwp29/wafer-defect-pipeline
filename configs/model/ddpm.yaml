@@ -1,0 +1,11 @@
+# DDPM hyperparameters. Matches HW08 cell #19 defaults.
+
+model:
+  name: ddpm
+  n_steps: 1000
+  min_beta: 1.0e-4
+  max_beta: 0.02
+
+unet:
+  time_emb_dim: 100
+  num_classes: 8                  # WM-811K defect class count (excluding "none")

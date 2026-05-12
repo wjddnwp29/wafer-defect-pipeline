@@ -1,0 +1,21 @@
+# Default WM-811K dataset configuration.
+# Hydra will merge this into the run config.
+
+dataset:
+  name: wm811k
+  source: kagglehub               # how to acquire the data (kagglehub | local_pickle)
+  cache_dir: null                 # if null, kagglehub default is used
+  pickle_name: LSWMD.pkl          # canonical filename inside the dataset
+
+image:
+  size: 28                        # HW08 default (notebook uses 28x28)
+  channels: 1
+
+split:
+  val_fraction: 0.1
+  seed: 42
+
+dataloader:
+  batch_size: 128
+  num_workers: 0                  # increase on Linux; keep 0 on Windows for safety
+  weighted_sampler: true          # use WeightedRandomSampler to upsample rare classes
