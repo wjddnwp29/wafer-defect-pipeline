@@ -10,6 +10,17 @@ from torch.utils.data import DataLoader
 
 from wafer_defect_pipeline.models.cm import ConsistencyModel, update_ema
 
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+
+
+def _log_metric(name: str, value: float, step: int) -> None:
+    if mlflow is not None and mlflow.active_run() is not None:
+        mlflow.log_metric(name, value, step=step)
+
+
 DEFAULT_CD_STEP_SIZES: tuple[int, ...] = (1, 10, 50, 100, 200, 500, 700)
 
 
@@ -136,6 +147,7 @@ def train_consistency_model(
         scheduler.step()
         avg_loss = epoch_loss / len(dataloader)
         loss_history.append(avg_loss)
+        _log_metric("cm_distill_loss", avg_loss, step=epoch)
 
         log = f"Epoch {epoch + 1}/{n_epochs}: {avg_loss:.5f}"
         if avg_loss < best_loss:
@@ -145,5 +157,6 @@ def train_consistency_model(
         if verbose:
             print(log)
 
+    _log_metric("cm_best_loss", best_loss, step=n_epochs - 1)
     student_cm.load_state_dict(torch.load(Path(store_path), map_location=device))
     return student_cm, loss_history

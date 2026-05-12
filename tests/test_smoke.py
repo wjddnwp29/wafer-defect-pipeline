@@ -334,3 +334,40 @@ def test_hydra_cm_config_builds_cm():
 
     cm = build_cm(cfg, build_device("cpu"))
     assert cm.n_steps == 20
+
+
+def test_training_loop_logs_mlflow_metrics(tmp_path):
+    import mlflow
+    import torch
+
+    from wafer_defect_pipeline.models import MyDDPM, MyUNet
+    from wafer_defect_pipeline.train import training_loop
+
+    mlflow.set_tracking_uri(f"file:{tmp_path / 'mlruns'}")
+    mlflow.set_experiment("test-smoke")
+
+    device = torch.device("cpu")
+    n_steps, num_classes = 10, 4
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    ddpm = MyDDPM(net, n_steps=n_steps, device=device, image_chw=(1, 28, 28))
+    optim = torch.optim.Adam(ddpm.parameters(), lr=1e-3)
+
+    with mlflow.start_run() as run:
+        training_loop(
+            ddpm,
+            _tiny_loader(batch_size=2, n_batches=2, num_classes=num_classes),
+            n_epochs=2,
+            optim=optim,
+            device=device,
+            store_path=tmp_path / "ddpm.pt",
+            verbose=False,
+        )
+        run_id = run.info.run_id
+
+    client = mlflow.MlflowClient(tracking_uri=f"file:{tmp_path / 'mlruns'}")
+    metrics = client.get_run(run_id).data.metrics
+    assert "train_loss" in metrics
+    assert "best_loss" in metrics
+
+    history = client.get_metric_history(run_id, "train_loss")
+    assert len(history) == 2

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import hydra
+import mlflow
 from omegaconf import DictConfig, OmegaConf
 
 from wafer_defect_pipeline.runtime import (
@@ -34,14 +35,39 @@ def main(cfg: DictConfig) -> None:
     store_path = Path(cfg.train.store_path)
     store_path.parent.mkdir(parents=True, exist_ok=True)
 
-    history = training_loop(
-        ddpm,
-        loader,
-        n_epochs=cfg.train.n_epochs,
-        optim=optim,
-        device=device,
-        store_path=store_path,
-    )
+    mlflow.set_tracking_uri(cfg.train.logging.mlflow_uri)
+    mlflow.set_experiment(cfg.train.logging.experiment_name)
+
+    with mlflow.start_run(run_name=f"ddpm-{cfg.model.n_steps}step"):
+        mlflow.log_params(
+            {
+                "model": cfg.model.name,
+                "n_steps": cfg.model.n_steps,
+                "min_beta": cfg.model.min_beta,
+                "max_beta": cfg.model.max_beta,
+                "time_emb_dim": cfg.model.unet.time_emb_dim,
+                "num_classes": cfg.model.unet.num_classes,
+                "img_size": cfg.data.image.size,
+                "batch_size": cfg.data.dataloader.batch_size,
+                "weighted_sampler": cfg.data.dataloader.weighted_sampler,
+                "optimizer": cfg.train.optimizer.name,
+                "lr": cfg.train.optimizer.lr,
+                "n_epochs": cfg.train.n_epochs,
+                "seed": cfg.seed,
+            }
+        )
+
+        history = training_loop(
+            ddpm,
+            loader,
+            n_epochs=cfg.train.n_epochs,
+            optim=optim,
+            device=device,
+            store_path=store_path,
+        )
+
+        mlflow.log_artifact(str(store_path))
+
     print(f"final loss: {history[-1]:.5f}, best checkpoint: {store_path}")
 
 

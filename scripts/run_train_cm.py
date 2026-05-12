@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import hydra
+import mlflow
 import torch
 from omegaconf import DictConfig, OmegaConf
 
@@ -42,14 +43,36 @@ def main(cfg: DictConfig) -> None:
     store_path = Path(cfg.train.store_path)
     store_path.parent.mkdir(parents=True, exist_ok=True)
 
-    student_cm, history = train_consistency_model(
-        teacher_ddpm,
-        loader,
-        n_epochs=cfg.train.n_epochs,
-        device=device,
-        lr=cfg.train.optimizer.lr,
-        store_path=store_path,
-    )
+    mlflow.set_tracking_uri(cfg.train.logging.mlflow_uri)
+    mlflow.set_experiment(cfg.train.logging.experiment_name)
+
+    with mlflow.start_run(run_name=f"cm-distill-{cfg.model.n_steps}step"):
+        mlflow.log_params(
+            {
+                "model": cfg.model.name,
+                "n_steps": cfg.model.n_steps,
+                "sigma_min": cfg.model.sigma_min,
+                "sigma_max": cfg.model.sigma_max,
+                "step_sizes": list(cfg.model.distillation.step_sizes),
+                "teacher_checkpoint": str(teacher_checkpoint),
+                "lr": cfg.train.optimizer.lr,
+                "n_epochs": cfg.train.n_epochs,
+                "batch_size": cfg.data.dataloader.batch_size,
+                "seed": cfg.seed,
+            }
+        )
+
+        student_cm, history = train_consistency_model(
+            teacher_ddpm,
+            loader,
+            n_epochs=cfg.train.n_epochs,
+            device=device,
+            lr=cfg.train.optimizer.lr,
+            store_path=store_path,
+        )
+
+        mlflow.log_artifact(str(store_path))
+
     print(f"final loss: {history[-1]:.5f}, student checkpoint: {store_path}")
 
 

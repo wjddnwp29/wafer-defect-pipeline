@@ -7,6 +7,16 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+try:
+    import mlflow
+except ImportError:
+    mlflow = None
+
+
+def _log_metric(name: str, value: float, step: int) -> None:
+    if mlflow is not None and mlflow.active_run() is not None:
+        mlflow.log_metric(name, value, step=step)
+
 
 def training_loop(
     ddpm,
@@ -55,6 +65,7 @@ def training_loop(
             epoch_loss += loss.item() * n / len(loader.dataset)
 
         loss_history.append(epoch_loss)
+        _log_metric("train_loss", epoch_loss, step=epoch)
 
         log = f"Loss at epoch {epoch + 1}: {epoch_loss:.5f}"
         if epoch_loss < best_loss:
@@ -64,4 +75,5 @@ def training_loop(
         if verbose:
             print(log)
 
+    _log_metric("best_loss", best_loss, step=n_epochs - 1)
     return loss_history
