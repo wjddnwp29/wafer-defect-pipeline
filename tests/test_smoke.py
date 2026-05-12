@@ -245,3 +245,46 @@ def test_generate_cm_with_nfe_shape():
     )
     assert x.shape == (3, 1, 28, 28)
     assert nfe == 4
+
+
+def test_show_images_returns_figure():
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import torch
+
+    from wafer_defect_pipeline.utils import show_images
+
+    imgs = torch.randn(4, 1, 28, 28)
+    fig = show_images(imgs, title="t", labels=torch.tensor([0, 1, 2, 3]), show=False)
+    assert fig is not None
+    assert len(fig.axes) == 4
+
+
+def test_calculate_fid_with_synthetic_features():
+    import numpy as np
+
+    from wafer_defect_pipeline.eval import calculate_fid
+
+    rng = np.random.default_rng(0)
+    real = rng.standard_normal((20, 16))
+    fake = real + 0.01 * rng.standard_normal(real.shape)
+    fid_close = calculate_fid(real, fake)
+
+    far = rng.standard_normal((20, 16)) + 5.0
+    fid_far = calculate_fid(real, far)
+
+    assert isinstance(fid_close, float)
+    assert fid_close < fid_far
+
+
+def test_inception_feature_extractor_no_weights_shape():
+    import torch
+
+    from wafer_defect_pipeline.eval import InceptionFeatureExtractor, extract_features
+
+    model = InceptionFeatureExtractor(weights=None).eval()
+    imgs = torch.randn(2, 1, 28, 28)
+    feats = extract_features(imgs, model, device=torch.device("cpu"), batch_size=2)
+    assert feats.shape[0] == 2
+    assert feats.ndim == 2
