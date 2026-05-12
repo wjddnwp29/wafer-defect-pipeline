@@ -1,6 +1,6 @@
 """DDPM wrapper around the UNet.
 
-Source: HW08_20231049.ipynb code cell #19.
+Ported from HW08_20231049.ipynb (MyDDPM).
 """
 
 from __future__ import annotations
@@ -10,10 +10,7 @@ import torch.nn as nn
 
 
 class MyDDPM(nn.Module):
-    """DDPM with linear beta schedule and class-conditional UNet backbone.
-
-    Source: HW08 cell #19.
-    """
+    """DDPM with linear beta schedule and class-conditional UNet backbone."""
 
     def __init__(
         self,
@@ -28,11 +25,32 @@ class MyDDPM(nn.Module):
         self.n_steps = n_steps
         self.device = device
         self.image_chw = image_chw
-        self.network = network.to(device) if device else network
-        # TODO (Phase 1 port): build betas / alphas / alpha_bars from HW08 cell #19.
+        self.network = network.to(device) if device is not None else network
 
-    def forward(self, x0: torch.Tensor, t: torch.Tensor, eta: torch.Tensor | None = None):
-        raise NotImplementedError("Port from HW08 cell #19")
+        betas = torch.linspace(min_beta, max_beta, n_steps)
+        if device is not None:
+            betas = betas.to(device)
+        self.betas = betas
+        self.alphas = 1 - self.betas
+        self.alpha_bars = torch.cumprod(self.alphas, dim=0)
+
+    def forward(
+        self,
+        x0: torch.Tensor,
+        t: torch.Tensor,
+        eta: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        n, c, h, w = x0.shape
+        a_bar = self.alpha_bars[t]
+
+        if eta is None:
+            eta = torch.randn(n, c, h, w, device=x0.device)
+
+        noisy = (
+            a_bar.sqrt().reshape(n, 1, 1, 1) * x0
+            + (1 - a_bar).sqrt().reshape(n, 1, 1, 1) * eta
+        )
+        return noisy
 
     def backward(self, x: torch.Tensor, t: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError("Port from HW08 cell #19")
+        return self.network(x, t, y)

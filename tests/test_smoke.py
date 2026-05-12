@@ -7,8 +7,6 @@ assertions.
 
 from __future__ import annotations
 
-import pytest
-
 
 def test_package_imports():
     import wafer_defect_pipeline  # noqa: F401
@@ -50,6 +48,53 @@ def test_seed_everything_runs():
     seed_everything(0)
 
 
-@pytest.mark.skip(reason="Pending Phase 1 port from HW08 cell #19/#22")
+def test_unet_forward_smoke():
+    import torch
+
+    from wafer_defect_pipeline.models import MyUNet
+
+    n_steps, num_classes, batch = 50, 8, 2
+    net = MyUNet(n_steps=n_steps, time_emb_dim=100, num_classes=num_classes)
+    x = torch.randn(batch, 1, 28, 28)
+    t = torch.randint(0, n_steps, (batch,))
+    y = torch.randint(0, num_classes, (batch,))
+    out = net(x, t, y)
+    assert out.shape == (batch, 1, 28, 28)
+
+
 def test_ddpm_forward_smoke():
-    """Replace once MyDDPM.forward is ported: 1-step shape preservation."""
+    import torch
+
+    from wafer_defect_pipeline.models import MyDDPM, MyUNet
+
+    n_steps, num_classes, batch = 50, 8, 2
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    ddpm = MyDDPM(net, n_steps=n_steps, image_chw=(1, 28, 28))
+    x0 = torch.randn(batch, 1, 28, 28)
+    t = torch.randint(0, n_steps, (batch,))
+    noisy = ddpm(x0, t)
+    assert noisy.shape == x0.shape
+
+    y = torch.randint(0, num_classes, (batch,))
+    eps_pred = ddpm.backward(noisy, t, y)
+    assert eps_pred.shape == x0.shape
+
+
+def test_cm_forward_smoke():
+    import torch
+
+    from wafer_defect_pipeline.models import ConsistencyModel, MyUNet, update_ema
+
+    n_steps, num_classes, batch = 50, 8, 2
+    net = MyUNet(n_steps=n_steps, num_classes=num_classes)
+    cm = ConsistencyModel(net, n_steps=n_steps)
+    x = torch.randn(batch, 1, 28, 28)
+    t = torch.randint(0, n_steps, (batch,))
+    y = torch.randint(0, num_classes, (batch,))
+
+    x0_pred = cm(x, t, y)
+    assert x0_pred.shape == x.shape
+    assert x0_pred.min() >= -1.0 and x0_pred.max() <= 1.0
+
+    target = ConsistencyModel(MyUNet(n_steps=n_steps, num_classes=num_classes), n_steps=n_steps)
+    update_ema(target, cm, decay=0.5)
