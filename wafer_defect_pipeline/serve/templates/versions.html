@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>{{ model_name }} — versions</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 2em; color: #222; }
+    h1 { font-size: 1.4em; margin-bottom: 1em; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+    th, td { border: 1px solid #ddd; padding: 0.5em 0.8em; text-align: left; }
+    th { background: #f4f4f4; font-weight: 600; }
+    code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+    .alias { display: inline-block; background: #e7f3ff; color: #054b89; padding: 0.05em 0.4em; border-radius: 3px; margin-right: 0.25em; font-size: 0.85em; }
+    .empty { color: #888; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>{{ model_name }} — model versions</h1>
+  {% if versions %}
+  <table>
+    <thead>
+      <tr>
+        <th>version</th>
+        <th>aliases</th>
+        <th>stage</th>
+        <th>created</th>
+        <th>run_id</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in versions %}
+      <tr>
+        <td>{{ v.version }}</td>
+        <td>
+          {% for alias in v.aliases %}<span class="alias">{{ alias }}</span>{% endfor %}
+        </td>
+        <td>{{ v.current_stage }}</td>
+        <td>{{ v.creation_timestamp }}</td>
+        <td><code>{{ v.run_id }}</code></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">no versions registered yet.</p>
+  {% endif %}
+</body>
+</html>
