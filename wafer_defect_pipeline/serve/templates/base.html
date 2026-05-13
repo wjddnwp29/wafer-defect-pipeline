@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}wafer-defect-pipeline{% endblock %}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 2em; color: #222; }
+    h1 { font-size: 1.4em; margin-bottom: 0.5em; }
+    nav { margin-bottom: 1.5em; font-size: 0.9em; }
+    nav a { color: #054b89; text-decoration: none; margin-right: 1em; }
+    nav a:hover { text-decoration: underline; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+    th, td { border: 1px solid #ddd; padding: 0.5em 0.8em; text-align: left; }
+    th { background: #f4f4f4; font-weight: 600; }
+    code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+    .alias { display: inline-block; background: #e7f3ff; color: #054b89; padding: 0.05em 0.4em; border-radius: 3px; margin-right: 0.25em; font-size: 0.85em; }
+    .empty { color: #888; font-style: italic; }
+    .passed { color: #2a7f2a; font-weight: 600; }
+    .failed { color: #c33; font-weight: 600; }
+    .pending { color: #888; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">versions</a>
+    <a href="/runs">runs</a>
+  </nav>
+  {% block body %}{% endblock %}
+</body>
+</html>

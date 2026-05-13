@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ experiment_name }} — runs{% endblock %}
+{% block body %}
+  <h1>{{ experiment_name }} — training runs</h1>
+  {% if runs %}
+  <table>
+    <thead>
+      <tr>
+        <th>run_id</th>
+        <th>run_name</th>
+        <th>status</th>
+        <th>started</th>
+        <th>epochs</th>
+        <th>best_loss</th>
+        <th>eval_fid</th>
+        <th>gate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in runs %}
+      <tr>
+        <td><code>{{ r.run_id[:8] }}</code></td>
+        <td>{{ r.run_name }}</td>
+        <td>{{ r.status }}</td>
+        <td>{{ r.started_at }}</td>
+        <td>{{ r.n_epochs }}</td>
+        <td>{% if r.best_loss is not none %}{{ "%.4f"|format(r.best_loss) }}{% else %}-{% endif %}</td>
+        <td>{% if r.eval_fid is not none %}{{ "%.2f"|format(r.eval_fid) }}{% else %}-{% endif %}</td>
+        <td>
+          {% if r.eval_passed is none %}<span class="pending">-</span>
+          {% elif r.eval_passed >= 1.0 %}<span class="passed">pass</span>
+          {% else %}<span class="failed">fail</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">no runs yet.</p>
+  {% endif %}
+{% endblock %}
