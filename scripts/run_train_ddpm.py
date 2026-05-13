@@ -66,7 +66,7 @@ def main(cfg: DictConfig) -> None:
             store_path=store_path,
         )
 
-        mlflow.log_artifact(str(store_path))
+        mlflow.pytorch.log_model(ddpm, artifact_path="model")
 
     print(f"final loss: {history[-1]:.5f}, best checkpoint: {store_path}")
 
