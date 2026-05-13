@@ -2,6 +2,7 @@ defaults:
   - data: default
   - model: ddpm
   - train: default
+  - eval: default
   - _self_
 
 seed: 42
