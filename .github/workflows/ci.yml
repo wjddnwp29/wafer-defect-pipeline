@@ -36,6 +36,10 @@ jobs:
     timeout-minutes: 30
     needs: test
 
+    strategy:
+      matrix:
+        target: [train, serve, mlflow]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +50,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: docker/Dockerfile.${{ matrix.target }}
           push: false
-          tags: wafer-defect-pipeline:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: wafer-defect-pipeline:ci-${{ matrix.target }}
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}

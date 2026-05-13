@@ -46,7 +46,7 @@ mlops = [
 serve = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
-    "gradio>=4.0",
+    "flask>=3.0",
     "prometheus-client>=0.20",
 ]
 
