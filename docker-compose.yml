@@ -14,7 +14,7 @@ services:
       dockerfile: docker/Dockerfile.serve
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5000
-      WAFER_MODEL_URI: models:/wafer-defect-ddpm/Staging
+      WAFER_MODEL_URI: models:/wafer-defect-ddpm@champion
     ports:
       - "8000:8000"
     depends_on:
@@ -27,7 +27,7 @@ services:
     command: ["python", "-m", "wafer_defect_pipeline.serve.web"]
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5000
-      WAFER_MODEL_URI: models:/wafer-defect-ddpm/Staging
+      WAFER_MODEL_URI: models:/wafer-defect-ddpm@champion
     ports:
       - "8001:8001"
     depends_on:

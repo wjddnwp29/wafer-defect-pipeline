@@ -2,7 +2,7 @@ host: 0.0.0.0
 port: 8000
 
 mlflow_tracking_uri: ${oc.env:MLFLOW_TRACKING_URI,http://localhost:5000}
-model_uri: ${oc.env:WAFER_MODEL_URI,models:/wafer-defect-ddpm/Staging}
+model_uri: ${oc.env:WAFER_MODEL_URI,models:/wafer-defect-ddpm@champion}
 
 device: cuda
 default_sampler: ddim
