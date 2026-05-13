@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}generate{% endblock %}
+{% block body %}
+  <h1>generate synthetic wafer defect</h1>
+
+  {% if error %}
+  <div class="error-banner">{{ error }}</div>
+  {% endif %}
+
+  <form method="post">
+    <div class="row">
+      <label>defect_class</label>
+      <select name="defect_class" required>
+        {% for cls in classes %}
+        <option value="{{ cls }}" {% if form and form.defect_class == cls %}selected{% endif %}>{{ cls }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
+      <label>n</label>
+      <input type="number" name="n" min="1" max="64" value="{{ form.n if form else 4 }}" required>
+    </div>
+    <div class="row">
+      <label>sampler</label>
+      <select name="sampler">
+        {% for s in samplers %}
+        <option value="{{ s }}" {% if form and form.sampler == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
+      <label>steps</label>
+      <input type="number" name="steps" min="1" max="1000" value="{{ form.steps if form else 50 }}" required>
+    </div>
+    <div class="row">
+      <label>seed</label>
+      <input type="number" name="seed" value="{{ form.seed if form and form.seed is not none else '' }}">
+    </div>
+    <div class="row">
+      <button type="submit">generate</button>
+    </div>
+  </form>
+
+  {% if result %}
+  <h2>result</h2>
+  <p>
+    {{ result.n }} images of <strong>{{ result.defect_class }}</strong>
+    via <code>{{ result.sampler }}</code> ({{ result.steps }} steps)
+    — model v{{ result.model_version }}, latency {{ "%.1f"|format(result.latency_ms) }}ms
+  </p>
+  <div class="image-grid">
+    {% for img in result.images %}
+    <img src="data:image/png;base64,{{ img }}" alt="generated {{ result.defect_class }}">
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}

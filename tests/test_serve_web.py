@@ -174,3 +174,111 @@ def test_runs_page_handles_missing_experiment(client, fake_missing_experiment):
     resp = client.get("/runs")
     assert resp.status_code == 200
     assert "no runs yet" in resp.data.decode("utf-8")
+
+
+@pytest.fixture
+def fake_api_success(monkeypatch):
+    from wafer_defect_pipeline.serve import web as web_module
+
+    body = {
+        "images": ["iVBORw0KGgoAAAA=", "iVBORw0KGgoAAAB="],
+        "defect_class": "Donut",
+        "n": 2,
+        "sampler": "ddim",
+        "steps": 50,
+        "model_name": "wafer-defect-ddpm",
+        "model_version": "3",
+        "latency_ms": 1234.5,
+    }
+
+    class _FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return body
+
+    monkeypatch.setattr(
+        web_module.httpx,
+        "post",
+        lambda *a, **kw: _FakeResponse(),
+    )
+    return body
+
+
+def test_generate_form_get_renders_inputs(client):
+    resp = client.get("/generate")
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+    assert 'name="defect_class"' in html
+    assert 'name="sampler"' in html
+    assert "Donut" in html
+    assert "ddim" in html
+
+
+def test_generate_form_post_renders_images(client, fake_api_success):
+    resp = client.post(
+        "/generate",
+        data={
+            "defect_class": "Donut",
+            "n": "2",
+            "sampler": "ddim",
+            "steps": "50",
+        },
+    )
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+    assert "iVBORw0KGgoAAAA=" in html
+    assert "iVBORw0KGgoAAAB=" in html
+    assert "model v3" in html
+
+
+def test_generate_form_shows_api_error(monkeypatch, client):
+    from wafer_defect_pipeline.serve import web as web_module
+
+    class _FakeResponse:
+        status_code = 400
+        text = '{"detail":"unknown defect_class: foo"}'
+
+        def json(self):
+            return {"detail": "unknown defect_class: foo"}
+
+    monkeypatch.setattr(
+        web_module.httpx,
+        "post",
+        lambda *a, **kw: _FakeResponse(),
+    )
+
+    resp = client.post(
+        "/generate",
+        data={
+            "defect_class": "foo",
+            "n": "1",
+            "sampler": "ddim",
+            "steps": "50",
+        },
+    )
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+    assert "unknown defect_class" in html
+
+
+def test_generate_form_handles_network_error(monkeypatch, client):
+    from wafer_defect_pipeline.serve import web as web_module
+
+    def _raise(*a, **kw):
+        raise web_module.httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(web_module.httpx, "post", _raise)
+
+    resp = client.post(
+        "/generate",
+        data={
+            "defect_class": "Donut",
+            "n": "1",
+            "sampler": "ddim",
+            "steps": "50",
+        },
+    )
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+    assert "API call failed" in html

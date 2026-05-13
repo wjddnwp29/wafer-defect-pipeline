@@ -4,10 +4,24 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-from flask import Flask, jsonify, render_template
+import httpx
+from flask import Flask, jsonify, render_template, request
 from mlflow.tracking import MlflowClient
 
 app = Flask(__name__)
+
+WM811K_CLASSES = [
+    "Center",
+    "Donut",
+    "Edge-Loc",
+    "Edge-Ring",
+    "Loc",
+    "Near-full",
+    "Random",
+    "Scratch",
+]
+
+SAMPLERS = ["ddim", "ddpm", "cm"]
 
 
 def _settings() -> dict[str, Any]:
@@ -18,6 +32,8 @@ def _settings() -> dict[str, Any]:
             "WAFER_EXPERIMENT_NAME", "wafer-defect-mlops"
         ),
         "max_runs": int(os.environ.get("WAFER_HISTORY_MAX_RUNS", "50")),
+        "api_url": os.environ.get("WAFER_API_URL", "http://localhost:8000"),
+        "api_timeout": float(os.environ.get("WAFER_API_TIMEOUT", "60")),
     }
 
 
@@ -88,6 +104,63 @@ def runs():
         "runs.html",
         experiment_name=cfg["experiment_name"],
         runs=rows,
+    )
+
+
+@app.route("/generate", methods=["GET", "POST"])
+def generate():
+    if request.method == "GET":
+        return render_template(
+            "generate.html",
+            classes=WM811K_CLASSES,
+            samplers=SAMPLERS,
+        )
+
+    cfg = _settings()
+    payload: dict[str, Any] = {
+        "defect_class": request.form["defect_class"],
+        "n": int(request.form["n"]),
+        "sampler": request.form["sampler"],
+        "steps": int(request.form["steps"]),
+    }
+    seed_str = request.form.get("seed", "").strip()
+    if seed_str:
+        payload["seed"] = int(seed_str)
+
+    try:
+        response = httpx.post(
+            f"{cfg['api_url']}/generate",
+            json=payload,
+            timeout=cfg["api_timeout"],
+        )
+    except httpx.HTTPError as exc:
+        return render_template(
+            "generate.html",
+            classes=WM811K_CLASSES,
+            samplers=SAMPLERS,
+            form=payload,
+            error=f"API call failed: {exc}",
+        )
+
+    if response.status_code != 200:
+        try:
+            detail = response.json().get("detail", response.text)
+        except Exception:
+            detail = response.text
+        return render_template(
+            "generate.html",
+            classes=WM811K_CLASSES,
+            samplers=SAMPLERS,
+            form=payload,
+            error=f"API error ({response.status_code}): {detail}",
+        )
+
+    return render_template(
+        "generate.html",
+        classes=WM811K_CLASSES,
+        samplers=SAMPLERS,
+        form=payload,
+        result=response.json(),
     )
 
 
