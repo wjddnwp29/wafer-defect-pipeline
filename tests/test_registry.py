@@ -23,6 +23,7 @@ class _TinyNet(nn.Module):
 def mlflow_local(tmp_path):
     tracking_uri = f"sqlite:///{tmp_path}/mlflow.db"
     mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(f"wafer-test-{tmp_path.name}")
     yield tracking_uri
 
 
